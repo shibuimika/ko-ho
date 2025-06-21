@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
         email: validatedData.email,
         company: validatedData.company,
         phoneNumber: validatedData.phoneNumber,
-        socialMedia: validatedData.socialMedia,
+        socialMedia: validatedData.socialMedia ? JSON.stringify(validatedData.socialMedia) : null,
       },
       include: {
         reporterTags: {

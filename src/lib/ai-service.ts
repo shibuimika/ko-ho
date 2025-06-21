@@ -22,6 +22,13 @@ export interface RecommendationDraft {
   tone: 'FORMAL' | 'CASUAL' | 'URGENT'
 }
 
+export interface InterviewRequestDraft {
+  subject: string
+  body: string
+  matchingReasons: string[]
+  tone: 'FORMAL' | 'CASUAL' | 'URGENT'
+}
+
 export interface ReporterProfile {
   id: string
   name: string
@@ -171,6 +178,44 @@ class AIService {
   }
 
   /**
+   * インタビュー依頼文生成
+   */
+  async generateInterviewRequest(
+    reporter: ReporterProfile,
+    content: ContentProfile,
+    matchingScore: number
+  ): Promise<InterviewRequestDraft> {
+    console.log('🎤 インタビュー依頼文生成を開始:', reporter.name)
+
+    try {
+      // 実際の実装では、Qwen-3を使用してパーソナライズされた依頼文を生成
+      const tone = matchingScore > 85 ? 'URGENT' : 'FORMAL'
+      
+      const subject = this.generateInterviewSubject(content, reporter)
+      const body = this.generateInterviewBody(content, reporter, matchingScore)
+      const matchingReasons = this.generateMatchingReasons(reporter, content, matchingScore)
+
+      console.log('✅ インタビュー依頼文を生成しました')
+      
+      return {
+        subject,
+        body,
+        matchingReasons,
+        tone
+      }
+
+    } catch (error) {
+      console.error('❌ インタビュー依頼文生成エラー:', error)
+      return {
+        subject: '【インタビューご依頼】' + content.title,
+        body: 'インタビュー依頼文の生成に失敗しました。',
+        matchingReasons: ['生成エラー'],
+        tone: 'FORMAL'
+      }
+    }
+  }
+
+  /**
    * プロセス全体の実行（コンテンツ公開時に自動実行）
    */
   async processContent(
@@ -266,6 +311,69 @@ ${reporter.company}でご活躍の${reporter.name}${honorific}の専門性に非
 
 リクルート広報チーム`
   }
+
+  private generateInterviewSubject(content: ContentProfile, reporter: ReporterProfile): string {
+    return `【インタビューご依頼】${content.title} - ${reporter.company}様向けご提案`
+  }
+
+  private generateInterviewBody(content: ContentProfile, reporter: ReporterProfile, score: number): string {
+    const honorific = reporter.company.includes('新聞') ? '様' : 'さん'
+    
+    return `${reporter.name}${honorific}
+
+いつもお世話になっております。
+企業広報担当です。
+
+この度、弊社では「${content.title}」に関する取り組みについて、ぜひ${reporter.name}${honorific}にインタビューをお願いしたく、ご連絡いたします。
+
+【なぜ${reporter.name}${honorific}にお願いしたいか】
+${reporter.name}${honorific}が${reporter.company}で執筆されている記事の専門性と今回の内容が非常に高い親和性を持っているため、読者の皆様にとって価値のある記事になると確信しております。
+
+【内容概要】
+${content.summary}
+
+【インタビュー形式】
+- 所要時間: 30-45分程度
+- 形式: オンライン・対面どちらでも対応可能
+- 日程: ${reporter.name}${honorific}のご都合に合わせて調整いたします
+
+マッチング度: ${score}点
+
+詳細な資料や追加情報をご用意しておりますので、ご興味をお持ちいただけましたら、お気軽にお声がけください。
+
+何卒よろしくお願いいたします。
+
+企業広報部`
+  }
+
+  private generateMatchingReasons(reporter: ReporterProfile, content: ContentProfile, score: number): string[] {
+    const reasons = []
+    
+    // 会社に基づく理由
+    if (reporter.company.includes('IT') || reporter.company.includes('テック')) {
+      reasons.push('IT・テクノロジー分野の専門性')
+    }
+    
+    // コンテンツに基づく理由
+    if (content.title.includes('AI') || content.body.includes('AI')) {
+      reasons.push('AI技術への深い理解と取材実績')
+    }
+    
+    if (content.title.includes('DX') || content.body.includes('DX')) {
+      reasons.push('DX・デジタル変革分野での豊富な執筆経験')
+    }
+    
+    // スコアに基づく理由
+    if (score >= 80) {
+      reasons.push('記事内容と専門分野の高い一致度')
+    }
+    
+    // 一般的な理由
+    reasons.push(`${reporter.company}の読者層との親和性`)
+    reasons.push('過去の取材実績と記事品質')
+    
+    return reasons.slice(0, 4) // 最大4つの理由を返す
+  }
 }
 
 // シングルトンインスタンス
@@ -288,4 +396,12 @@ export async function calculateReporterContentMatch(
   content: ContentProfile
 ) {
   return await aiService.calculateMatchingScore(reporter, content)
+}
+
+export async function generateInterviewRequestForReporter(
+  reporter: ReporterProfile,
+  content: ContentProfile,
+  matchingScore: number
+) {
+  return await aiService.generateInterviewRequest(reporter, content, matchingScore)
 } 

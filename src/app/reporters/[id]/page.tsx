@@ -272,7 +272,10 @@ export default function ReporterDetailPage({ params }: ReporterDetailPageProps) 
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">SNS情報</h3>
                 {reporter.socialMedia ? (
                   <pre className="text-sm text-gray-900 bg-gray-50 p-3 rounded-md">
-                    {JSON.stringify(JSON.parse(reporter.socialMedia), null, 2)}
+                    {typeof reporter.socialMedia === 'string' ? 
+                      JSON.stringify(JSON.parse(reporter.socialMedia), null, 2) : 
+                      JSON.stringify(reporter.socialMedia, null, 2)
+                    }
                   </pre>
                 ) : (
                   <p className="text-gray-500">SNS情報なし</p>

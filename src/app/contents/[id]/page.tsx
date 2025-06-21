@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Content } from '@/types';
+import { Content, InterviewRequest } from '@/types';
+import { ReporterSelectionModal } from '@/components/contents/reporter-selection-modal';
 
 const contentSchema = z.object({
   title: z.string().min(1, 'タイトルは必須です'),
@@ -26,6 +27,7 @@ export default function ContentDetailPage({ params }: ContentDetailPageProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showReporterModal, setShowReporterModal] = useState(false);
 
   const {
     register,
@@ -131,6 +133,11 @@ export default function ContentDetailPage({ params }: ContentDetailPageProps) {
     }
   };
 
+  const handleInterviewRequestCreated = (request: InterviewRequest) => {
+    console.log('インタビュー依頼が作成されました:', request);
+    // 必要に応じて追加の処理を実装
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -172,6 +179,12 @@ export default function ContentDetailPage({ params }: ContentDetailPageProps) {
                   className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
                 >
                   AI処理
+                </button>
+                <button
+                  onClick={() => setShowReporterModal(true)}
+                  className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700"
+                >
+                  インタビュー依頼
                 </button>
                 <button
                   onClick={() => setIsEditing(true)}
@@ -328,6 +341,15 @@ export default function ContentDetailPage({ params }: ContentDetailPageProps) {
           </div>
         )}
       </div>
+
+      {content && (
+        <ReporterSelectionModal
+          isOpen={showReporterModal}
+          onClose={() => setShowReporterModal(false)}
+          content={content}
+          onInterviewRequestCreated={handleInterviewRequestCreated}
+        />
+      )}
     </div>
   );
 } 

@@ -120,7 +120,7 @@ export async function PUT(
         email: body.email,
         company: body.company,
         phoneNumber: body.phoneNumber || null,
-        socialMedia: body.socialMedia || null,
+        socialMedia: body.socialMedia ? (typeof body.socialMedia === 'string' ? body.socialMedia : JSON.stringify(body.socialMedia)) : null,
       },
       include: {
         reporterTags: {

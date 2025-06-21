@@ -25,6 +25,7 @@ model Reporter {
   reporterTags ReporterTag[]
   matchingScores MatchingScore[]
   recommendationDrafts RecommendationDraft[]
+  interviewRequests InterviewRequest[]
   
   @@map("reporters")
 }
@@ -43,6 +44,7 @@ model Content {
   contentTags ContentTag[]
   matchingScores MatchingScore[]
   recommendationDrafts RecommendationDraft[]
+  interviewRequests InterviewRequest[]
   mailLogs MailLog[]
   
   @@map("contents")
@@ -141,6 +143,7 @@ model RecommendationDraft {
   subject    String
   body       String
   tone       String   @default("FORMAL") // FORMAL, CASUAL, URGENT
+  type       String   @default("EMAIL") // EMAIL, INTERVIEW_REQUEST
   createdAt  DateTime @default(now())
   
   // リレーション
@@ -149,6 +152,26 @@ model RecommendationDraft {
   mailLogs MailLog[]
   
   @@map("recommendation_drafts")
+}
+
+model InterviewRequest {
+  id              String   @id @default(cuid())
+  reporterId      String
+  contentId       String
+  subject         String
+  body            String
+  matchingReasons String   // JSON文字列として保存（マッチング理由の詳細）
+  status          String   @default("DRAFT") // DRAFT, SENT, ACCEPTED, DECLINED
+  tone            String   @default("FORMAL") // FORMAL, CASUAL, URGENT
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  sentAt          DateTime?
+  
+  // リレーション
+  reporter Reporter @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  content  Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  
+  @@map("interview_requests")
 }
 
 model MailLog {
@@ -173,4 +196,6 @@ model MailLog {
 // SQLiteでは列挙型は文字列として扱う
 // ContentStatus: "DRAFT", "PUBLISHED", "ARCHIVED"
 // TagCategory: "INDUSTRY", "TOPIC", "COMPANY", "TECHNOLOGY", "EVENT"
-// DraftTone: "FORMAL", "CASUAL", "URGENT" 
+// DraftTone: "FORMAL", "CASUAL", "URGENT"
+// DraftType: "EMAIL", "INTERVIEW_REQUEST"
+// InterviewRequestStatus: "DRAFT", "SENT", "ACCEPTED", "DECLINED" 

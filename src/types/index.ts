@@ -65,13 +65,40 @@ export interface RecommendationDraft {
   subject: string;
   body: string;
   tone: DraftTone;
+  type: DraftType;
   createdAt: Date;
+}
+
+// インタビュー依頼の型定義
+export interface InterviewRequest {
+  id: string;
+  reporterId: string;
+  contentId: string;
+  subject: string;
+  body: string;
+  matchingReasons: string[];
+  status: InterviewRequestStatus;
+  tone: DraftTone;
+  createdAt: Date;
+  updatedAt: Date;
+  sentAt?: Date;
+  reporter?: Reporter;
+  content?: Content;
+}
+
+// インタビュー依頼作成用の型定義
+export interface CreateInterviewRequestData {
+  reporterId: string;
+  contentId: string;
+  tone?: DraftTone;
 }
 
 // 文字列リテラル型として定義
 export type ContentStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
 export type TagCategory = 'INDUSTRY' | 'TOPIC' | 'COMPANY' | 'TECHNOLOGY' | 'EVENT'
 export type DraftTone = 'FORMAL' | 'CASUAL' | 'URGENT'
+export type DraftType = 'EMAIL' | 'INTERVIEW_REQUEST'
+export type InterviewRequestStatus = 'DRAFT' | 'SENT' | 'ACCEPTED' | 'DECLINED'
 
 // APIレスポンスの型定義
 export interface ApiResponse<T> {
@@ -102,4 +129,11 @@ export interface DashboardData {
     content: Content;
     score: number;
   }[];
+}
+
+// 記者選定用の型定義
+export interface ReporterCandidate {
+  reporter: Reporter;
+  matchingScore: MatchingScore;
+  reasons: string[];
 } 

@@ -1,0 +1,176 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Reporter {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  company      String
+  phoneNumber  String?
+  socialMedia  String?  // JSONを文字列として保存
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // リレーション
+  articles     Article[]
+  reporterTags ReporterTag[]
+  matchingScores MatchingScore[]
+  recommendationDrafts RecommendationDraft[]
+  
+  @@map("reporters")
+}
+
+model Content {
+  id          String   @id @default(cuid())
+  title       String
+  summary     String
+  body        String
+  status      String   @default("DRAFT") // DRAFT, PUBLISHED, ARCHIVED
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // リレーション
+  contentTags ContentTag[]
+  matchingScores MatchingScore[]
+  recommendationDrafts RecommendationDraft[]
+  mailLogs MailLog[]
+  
+  @@map("contents")
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  category  String   // INDUSTRY, TOPIC, COMPANY, TECHNOLOGY, EVENT
+  weight    Float    @default(1.0)
+  createdAt DateTime @default(now())
+  
+  // リレーション
+  reporterTags ReporterTag[]
+  contentTags  ContentTag[]
+  articleTags  ArticleTag[]
+  
+  @@map("tags")
+}
+
+model Article {
+  id          String   @id @default(cuid())
+  title       String
+  url         String
+  publishedAt DateTime
+  summary     String?
+  reporterId  String
+  createdAt   DateTime @default(now())
+  
+  // リレーション
+  reporter    Reporter @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  articleTags ArticleTag[]
+  
+  @@map("articles")
+}
+
+model ReporterTag {
+  reporterId String
+  tagId      String
+  confidence Float  @default(1.0)
+  
+  // リレーション
+  reporter Reporter @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  tag      Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  
+  @@id([reporterId, tagId])
+  @@map("reporter_tags")
+}
+
+model ContentTag {
+  contentId  String
+  tagId      String
+  confidence Float  @default(1.0)
+  
+  // リレーション
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  
+  @@id([contentId, tagId])
+  @@map("content_tags")
+}
+
+model ArticleTag {
+  articleId  String
+  tagId      String
+  confidence Float  @default(1.0)
+  
+  // リレーション
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  
+  @@id([articleId, tagId])
+  @@map("article_tags")
+}
+
+model MatchingScore {
+  id         String   @id @default(cuid())
+  reporterId String
+  contentId  String
+  score      Float
+  reasons    String   // JSON文字列として保存（例：'["AI", "テクノロジー"]'）
+  createdAt  DateTime @default(now())
+  
+  // リレーション
+  reporter Reporter @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  content  Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  
+  @@unique([reporterId, contentId])
+  @@map("matching_scores")
+}
+
+model RecommendationDraft {
+  id         String   @id @default(cuid())
+  reporterId String
+  contentId  String
+  subject    String
+  body       String
+  tone       String   @default("FORMAL") // FORMAL, CASUAL, URGENT
+  createdAt  DateTime @default(now())
+  
+  // リレーション
+  reporter Reporter @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  content  Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  mailLogs MailLog[]
+  
+  @@map("recommendation_drafts")
+}
+
+model MailLog {
+  id                 String   @id @default(cuid())
+  reporterEmail      String
+  subject            String
+  body               String
+  contentId          String?
+  recommendationId   String?
+  status             String   @default("PENDING") // SENT, FAILED, PENDING
+  sentAt             DateTime?
+  error              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  content            Content?            @relation(fields: [contentId], references: [id], onDelete: SetNull)
+  recommendationDraft RecommendationDraft? @relation(fields: [recommendationId], references: [id], onDelete: SetNull)
+
+  @@map("mail_logs")
+}
+
+// SQLiteでは列挙型は文字列として扱う
+// ContentStatus: "DRAFT", "PUBLISHED", "ARCHIVED"
+// TagCategory: "INDUSTRY", "TOPIC", "COMPANY", "TECHNOLOGY", "EVENT"
+// DraftTone: "FORMAL", "CASUAL", "URGENT" 

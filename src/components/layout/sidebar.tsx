@@ -49,7 +49,7 @@ export function Sidebar() {
       </div>
 
       {/* デスクトップ用サイドバー */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
+      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-[min(25%,320px)] lg:min-w-[200px] lg:flex-col">
         <div className="flex flex-grow flex-col overflow-y-auto bg-white border-r border-gray-200">
           <SidebarContent pathname={pathname} />
         </div>
@@ -72,7 +72,7 @@ export function Sidebar() {
 function SidebarContent({ pathname }: { pathname: string }) {
   return (
     <div className="flex flex-grow flex-col">
-      <div className="flex flex-shrink-0 items-center px-4 py-6">
+      <div className="flex flex-shrink-0 items-center px-3 lg:px-4 py-6">
         <h1 className="text-xl font-bold text-gray-900">Ko-Ho</h1>
       </div>
       <nav className="flex-1 space-y-1 px-2 pb-4">
@@ -83,7 +83,7 @@ function SidebarContent({ pathname }: { pathname: string }) {
               key={item.name}
               href={item.href}
               className={`
-                group flex items-center px-2 py-2 text-sm font-medium rounded-md
+                group flex items-center px-2 py-2 text-sm font-medium rounded-md whitespace-normal break-words
                 ${isActive
                   ? 'bg-blue-100 text-blue-900'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'

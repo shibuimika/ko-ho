@@ -50,7 +50,7 @@ class AIService {
   private isActive: boolean = false
 
   constructor() {
-    this.qwenPath = process.env.QWEN_MODEL_PATH || '/Users/01062544/Documents/ADK_qwen3'
+    this.qwenPath = process.env.QWEN_MODEL_PATH || path.join(process.cwd(), 'public', 'ai', 'ADK_qwen3')
   }
 
   /**
